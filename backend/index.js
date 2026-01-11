@@ -1,8 +1,12 @@
+import 'dotenv/config';  // automatically loads .env variables
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import adminRoutes from "./routes/adminRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import dotenv from "dotenv";
+
+dotenv.config(); // load .env
 
 const app = express();
 
@@ -21,9 +25,7 @@ app.use("/admin", adminRoutes);
 // user routes
 app.use("/api", userRoutes);
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-

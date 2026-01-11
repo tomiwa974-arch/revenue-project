@@ -1,4 +1,3 @@
-// backend/controllers/adminController.js
 import fs from "fs";
 import path from "path";
 import bcrypt from "bcrypt";
@@ -16,19 +15,16 @@ export const adminLogin = async (req, res) => {
 
   const adminData = JSON.parse(fs.readFileSync(adminPath));
 
-  // Check username
   if (username !== adminData.name) {
     return res.status(401).json({ success: false, message: "Invalid username or password" });
   }
 
-  // Check password
   const match = await bcrypt.compare(password, adminData.password);
   if (!match) {
     return res.status(401).json({ success: false, message: "Invalid username or password" });
   }
 
-  // Generate JWT token
-  const token = jwt.sign({ name: adminData.name }, "secretkey", { expiresIn: "1h" });
+  const token = jwt.sign({ name: adminData.name }, process.env.SECRET_KEY, { expiresIn: "1h" });
 
   res.json({ success: true, token });
 };
@@ -75,5 +71,6 @@ export const deletePerson = (req, res) => {
   fs.writeFileSync(peoplePath, JSON.stringify(people, null, 2));
   res.json({ message: "Deleted successfully" });
 };
+
 
 
