@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("adminToken");
+  const [token, setToken] = useState(null);
 
-  const [userName] = useState(localStorage.getItem("adminName") || "Admin");
+  const [userName, setUserName] = useState("Admin");
   const [people, setPeople] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [name, setName] = useState("");
@@ -19,10 +19,16 @@ function AdminDashboard() {
   const [personToDelete, setPersonToDelete] = useState(null);
   const [search, setSearch] = useState("");
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   // Protect dashboard
   useEffect(() => {
-    if (!token) navigate("/admin/login", { replace: true });
-  }, [token, navigate]);
+    const t = localStorage.getItem("adminToken");
+    const name = localStorage.getItem("adminName") || "Admin";
+    setToken(t);
+    setUserName(name);
+    if (!t) navigate("/admin/login", { replace: true });
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
@@ -42,7 +48,7 @@ function AdminDashboard() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/people`, {
+      const res = await fetch(`${API_URL}/admin/people`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -62,8 +68,8 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchPeople();
-  }, []);
+    if (token) fetchPeople();
+  }, [token]);
 
   const sortData = (list) => {
     let sorted = [...list];
@@ -80,14 +86,14 @@ function AdminDashboard() {
 
     try {
       if (editingPerson) {
-        await fetch(`${import.meta.env.VITE_API_URL}/admin/people/${editingPerson._id}`, {
+        await fetch(`${API_URL}/admin/people/${editingPerson._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload),
         });
         setEditingPerson(null);
       } else {
-        await fetch(`${import.meta.env.VITE_API_URL}/admin/people`, {
+        await fetch(`${API_URL}/admin/people`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload),
@@ -107,7 +113,7 @@ function AdminDashboard() {
     if (!personToDelete) return;
 
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/admin/people/${personToDelete._id}`, {
+      await fetch(`${API_URL}/admin/people/${personToDelete._id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -129,7 +135,6 @@ function AdminDashboard() {
   const start = (page - 1) * rowsPerPage;
   const displayed = sortData(filtered).slice(start, start + rowsPerPage);
 
-  // Live search
   useEffect(() => {
     const query = search.toLowerCase();
     setFiltered(
@@ -142,6 +147,8 @@ function AdminDashboard() {
     );
     setPage(1);
   }, [search, people]);
+
+  if (!token) return <p className="p-4 text-black">Redirecting to login...</p>;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -238,3 +245,4 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
+
