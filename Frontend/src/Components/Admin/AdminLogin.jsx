@@ -7,14 +7,12 @@ function AdminLogin() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-      const res = await fetch(`${API_URL}/admin/login`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -23,8 +21,11 @@ function AdminLogin() {
       const data = await res.json();
 
       if (data.success) {
+        // ✅ Save auth data
         localStorage.setItem("adminToken", data.token);
         localStorage.setItem("adminName", username);
+
+        // ✅ Navigate to dashboard
         navigate("/admin/dashboard");
       } else {
         setError(data.message || "Invalid credentials");
