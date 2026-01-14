@@ -4,5 +4,5 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
-  base: './', // <-- add this line
+  base: '/', // <-- MUST be '/' for Vercel + React Router
 });
