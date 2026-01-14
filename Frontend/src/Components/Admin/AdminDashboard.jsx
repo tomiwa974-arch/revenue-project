@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
   const navigate = useNavigate();
-  const [token, setToken] = useState(null);
-  const [userName, setUserName] = useState("Admin");
+  const token = localStorage.getItem("adminToken");
 
+  const [userName] = useState(localStorage.getItem("adminName") || "Admin");
   const [people, setPeople] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [name, setName] = useState("");
@@ -19,26 +19,17 @@ function AdminDashboard() {
   const [personToDelete, setPersonToDelete] = useState(null);
   const [search, setSearch] = useState("");
 
-  // Backend URL
-  const API_URL = import.meta.env.VITE_API_URL || "https://your-backend.onrender.com";
-
-  // Load token and user safely
+  // Protect dashboard
   useEffect(() => {
-    const t = localStorage.getItem("adminToken");
-    const name = localStorage.getItem("adminName") || "Admin";
-    setToken(t);
-    setUserName(name);
-    if (!t) navigate("/admin/login", { replace: true });
-  }, [navigate]);
+    if (!token) navigate("/admin/login", { replace: true });
+  }, [token, navigate]);
 
-  // Logout
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminName");
     navigate("/admin/login", { replace: true });
   };
 
-  // Format date
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -46,12 +37,12 @@ function AdminDashboard() {
       day: "numeric",
     });
 
-  // Fetch people
   const fetchPeople = async () => {
     if (!token) return;
     setLoading(true);
+
     try {
-      const res = await fetch(`${API_URL}/admin/people`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/people`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -71,10 +62,9 @@ function AdminDashboard() {
   };
 
   useEffect(() => {
-    if (token) fetchPeople();
-  }, [token]);
+    fetchPeople();
+  }, []);
 
-  // Sorting
   const sortData = (list) => {
     let sorted = [...list];
     if (sortMode === "az") sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -84,38 +74,40 @@ function AdminDashboard() {
     return sorted;
   };
 
-  // Add / Edit
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = { name, streetName, location, date: new Date() };
 
     try {
       if (editingPerson) {
-        await fetch(`${API_URL}/admin/people/${editingPerson._id}`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/admin/people/${editingPerson._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload),
         });
         setEditingPerson(null);
       } else {
-        await fetch(`${API_URL}/admin/people`, {
+        await fetch(`${import.meta.env.VITE_API_URL}/admin/people`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload),
         });
       }
-      setName(""); setStreetName(""); setLocation("");
+
+      setName("");
+      setStreetName("");
+      setLocation("");
       fetchPeople();
     } catch (err) {
       console.error(err);
     }
   };
 
-  // Delete
   const confirmDelete = async () => {
     if (!personToDelete) return;
+
     try {
-      await fetch(`${API_URL}/admin/people/${personToDelete._id}`, {
+      await fetch(`${import.meta.env.VITE_API_URL}/admin/people/${personToDelete._id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -133,7 +125,6 @@ function AdminDashboard() {
     setLocation(person.location);
   };
 
-  // Pagination & filtered data
   const totalPages = Math.ceil(filtered.length / rowsPerPage);
   const start = (page - 1) * rowsPerPage;
   const displayed = sortData(filtered).slice(start, start + rowsPerPage);
@@ -151,9 +142,6 @@ function AdminDashboard() {
     );
     setPage(1);
   }, [search, people]);
-
-  // Render safe
-  if (!token) return <p className="p-4 text-black">Redirecting to login...</p>;
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -173,6 +161,7 @@ function AdminDashboard() {
           <h2 className="font-bold mb-2 text-green-600">
             {editingPerson ? "Edit Person" : "Add New Person"}
           </h2>
+
           <div className="flex flex-col md:flex-row gap-3">
             <input className="input input-bordered flex-1" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required />
             <input className="input input-bordered flex-1" placeholder="Street Name" value={streetName} onChange={(e) => setStreetName(e.target.value)} required />
@@ -181,7 +170,7 @@ function AdminDashboard() {
           </div>
         </form>
 
-        {/* Search & sort */}
+        {/* Search and sort */}
         <div className="flex justify-between mb-3">
           <input
             id="adminSearch"
