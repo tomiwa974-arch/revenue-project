@@ -1,76 +1,52 @@
-import fs from "fs";
-import path from "path";
-import bcrypt from "bcrypt";
+import Admin from "../models/Admin.js";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const adminPath = path.resolve("data/admin.json");
-
-// Admin login
+/* ADMIN LOGIN */
 export const adminLogin = async (req, res) => {
-  const { username, password } = req.body;
+  try {
+    const { username, password } = req.body;
 
-  if (!fs.existsSync(adminPath)) {
-    return res.status(500).json({ success: false, message: "Admin file missing" });
-  }
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Username and password required"
+      });
+    }
 
-  const adminData = JSON.parse(fs.readFileSync(adminPath));
+    const admin = await Admin.findOne({ username });
+    if (!admin) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
+    }
 
-  if (username !== adminData.name) {
-    return res.status(401).json({ success: false, message: "Invalid username or password" });
-  }
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
+    }
 
-  const match = await bcrypt.compare(password, adminData.password);
-  if (!match) {
-    return res.status(401).json({ success: false, message: "Invalid username or password" });
-  }
+    const token = jwt.sign(
+      { id: admin._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
-  const token = jwt.sign({ name: adminData.name }, process.env.SECRET_KEY, { expiresIn: "1h" });
+    res.json({
+      success: true,
+      token
+    });
+ } catch (err) {
+  console.error("Admin login error FULL:", err);
+  return res.status(500).json({
+    success: false,
+    message: err.message
+  });
+}
 
-  res.json({ success: true, token });
 };
-
-// Get all people
-export const getPeople = (req, res) => {
-  const peoplePath = path.resolve("data/people.json");
-  if (!fs.existsSync(peoplePath)) fs.writeFileSync(peoplePath, "[]");
-  const people = JSON.parse(fs.readFileSync(peoplePath));
-  res.json(people);
-};
-
-// Add person
-export const addPerson = (req, res) => {
-  const peoplePath = path.resolve("data/people.json");
-  if (!fs.existsSync(peoplePath)) fs.writeFileSync(peoplePath, "[]");
-
-  const people = JSON.parse(fs.readFileSync(peoplePath));
-  const newPerson = { _id: Date.now().toString(), ...req.body };
-  people.push(newPerson);
-  fs.writeFileSync(peoplePath, JSON.stringify(people, null, 2));
-  res.json(newPerson);
-};
-
-// Update person
-export const updatePerson = (req, res) => {
-  const { id } = req.params;
-  const peoplePath = path.resolve("data/people.json");
-  const people = JSON.parse(fs.readFileSync(peoplePath));
-  const index = people.findIndex((p) => p._id === id);
-  if (index === -1) return res.status(404).json({ message: "Person not found" });
-
-  people[index] = { ...people[index], ...req.body };
-  fs.writeFileSync(peoplePath, JSON.stringify(people, null, 2));
-  res.json(people[index]);
-};
-
-// Delete person
-export const deletePerson = (req, res) => {
-  const { id } = req.params;
-  const peoplePath = path.resolve("data/people.json");
-  let people = JSON.parse(fs.readFileSync(peoplePath));
-  people = people.filter((p) => p._id !== id);
-  fs.writeFileSync(peoplePath, JSON.stringify(people, null, 2));
-  res.json({ message: "Deleted successfully" });
-};
-
-
 
