@@ -7,12 +7,15 @@ function AdminLogin() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // ✅ Add this line
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/admin/login", {
+      const res = await fetch(`${API_URL}/admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -80,4 +83,3 @@ function AdminLogin() {
 }
 
 export default AdminLogin;
-

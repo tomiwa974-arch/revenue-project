@@ -10,6 +10,9 @@ function Hero() {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [search, setSearch] = useState("");
 
+  // ✅ Add this line
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const formatDate = (dateString) =>
     new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -20,7 +23,7 @@ function Hero() {
   const fetchPeople = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/people`);
+      const res = await fetch(`${API_URL}/admin/people`);
       const data = await res.json();
       setPeople(data);
       setFiltered(data);

@@ -19,6 +19,9 @@ function AdminDashboard() {
   const [personToDelete, setPersonToDelete] = useState(null);
   const [search, setSearch] = useState("");
 
+  // ✅ Add this line
+  const API_URL = import.meta.env.VITE_API_URL;
+
   // Protect dashboard
   useEffect(() => {
     if (!token) navigate("/admin/login", { replace: true });
@@ -42,7 +45,7 @@ function AdminDashboard() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/admin/people", {
+      const res = await fetch(`${API_URL}/admin/people`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -83,7 +86,7 @@ function AdminDashboard() {
 
     try {
       if (editingPerson) {
-        await fetch(`http://localhost:5000/admin/people/${editingPerson._id}`, {
+        await fetch(`${API_URL}/admin/people/${editingPerson._id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -93,7 +96,7 @@ function AdminDashboard() {
         });
         setEditingPerson(null);
       } else {
-        await fetch("http://localhost:5000/admin/people", {
+        await fetch(`${API_URL}/admin/people`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -116,13 +119,10 @@ function AdminDashboard() {
     if (!personToDelete) return;
 
     try {
-      await fetch(
-        `http://localhost:5000/admin/people/${personToDelete._id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await fetch(`${API_URL}/admin/people/${personToDelete._id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setPersonToDelete(null);
       fetchPeople();
     } catch (err) {
@@ -323,4 +323,3 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
-
