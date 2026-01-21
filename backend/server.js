@@ -11,6 +11,15 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+import cors from "cors";
+
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+
+app.use(express.json());
+
 // Routes
 app.use("/admin", adminRoutes);
 
