@@ -12,27 +12,30 @@ function AdminLogin() {
     setError("");
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/login`, {
+      const res = await fetch("http://localhost:5000/admin/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ username, password }),
       });
 
       const data = await res.json();
 
-      if (data.success) {
-        // ✅ Save auth data
-        localStorage.setItem("adminToken", data.token);
-        localStorage.setItem("adminName", username);
-
-        // ✅ Navigate to dashboard
-        navigate("/admin/dashboard");
-      } else {
-        setError(data.message || "Invalid credentials");
+      if (!res.ok) {
+        setError(data.message || "Login failed");
+        return;
       }
+
+      // ✅ Save auth data
+      localStorage.setItem("adminToken", data.token);
+      localStorage.setItem("adminName", username);
+
+      // ✅ Navigate
+      navigate("/admin/dashboard");
     } catch (err) {
       console.error(err);
-      setError("Something went wrong");
+      setError("Server not reachable");
     }
   };
 
@@ -77,3 +80,4 @@ function AdminLogin() {
 }
 
 export default AdminLogin;
+

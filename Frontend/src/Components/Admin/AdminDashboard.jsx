@@ -42,7 +42,7 @@ function AdminDashboard() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/people`, {
+      const res = await fetch("http://localhost:5000/admin/people", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -68,9 +68,12 @@ function AdminDashboard() {
   const sortData = (list) => {
     let sorted = [...list];
     if (sortMode === "az") sorted.sort((a, b) => a.name.localeCompare(b.name));
-    else if (sortMode === "za") sorted.sort((a, b) => b.name.localeCompare(a.name));
-    else if (sortMode === "newest") sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
-    else if (sortMode === "oldest") sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+    else if (sortMode === "za")
+      sorted.sort((a, b) => b.name.localeCompare(a.name));
+    else if (sortMode === "newest")
+      sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+    else if (sortMode === "oldest")
+      sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
     return sorted;
   };
 
@@ -80,16 +83,22 @@ function AdminDashboard() {
 
     try {
       if (editingPerson) {
-        await fetch(`${import.meta.env.VITE_API_URL}/admin/people/${editingPerson._id}`, {
+        await fetch(`http://localhost:5000/admin/people/${editingPerson._id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(payload),
         });
         setEditingPerson(null);
       } else {
-        await fetch(`${import.meta.env.VITE_API_URL}/admin/people`, {
+        await fetch("http://localhost:5000/admin/people", {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(payload),
         });
       }
@@ -107,10 +116,13 @@ function AdminDashboard() {
     if (!personToDelete) return;
 
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/admin/people/${personToDelete._id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await fetch(
+        `http://localhost:5000/admin/people/${personToDelete._id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setPersonToDelete(null);
       fetchPeople();
     } catch (err) {
@@ -125,6 +137,7 @@ function AdminDashboard() {
     setLocation(person.location);
   };
 
+  // Pagination logic
   const totalPages = Math.ceil(filtered.length / rowsPerPage);
   const start = (page - 1) * rowsPerPage;
   const displayed = sortData(filtered).slice(start, start + rowsPerPage);
@@ -132,55 +145,80 @@ function AdminDashboard() {
   // Live search
   useEffect(() => {
     const query = search.toLowerCase();
-    setFiltered(
-      people.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query) ||
-          p.streetName.toLowerCase().includes(query) ||
-          p.location.toLowerCase().includes(query)
-      )
+    const result = people.filter(
+      (p) =>
+        p.name.toLowerCase().includes(query) ||
+        p.streetName.toLowerCase().includes(query) ||
+        p.location.toLowerCase().includes(query)
     );
+    setFiltered(result);
     setPage(1);
   }, [search, people]);
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Navbar */}
       <div className="flex justify-between items-center bg-white p-4 shadow mb-6">
         <h1 className="text-xl text-green-600 font-bold">
           Welcome, {userName}!
         </h1>
-        <button onClick={handleLogout} className="btn btn-sm bg-red-600 text-white">
+        <button
+          onClick={handleLogout}
+          className="btn btn-sm bg-red-600 text-white"
+        >
           Logout
         </button>
       </div>
 
       <div className="px-6">
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white p-4 rounded-xl shadow mb-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white p-4 rounded-xl shadow mb-6"
+        >
           <h2 className="font-bold mb-2 text-green-600">
             {editingPerson ? "Edit Person" : "Add New Person"}
           </h2>
 
           <div className="flex flex-col md:flex-row gap-3">
-            <input className="input input-bordered flex-1" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required />
-            <input className="input input-bordered flex-1" placeholder="Street Name" value={streetName} onChange={(e) => setStreetName(e.target.value)} required />
-            <input className="input input-bordered flex-1" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} required />
-            <button className="btn bg-green-600 text-white">{editingPerson ? "Update" : "Add"}</button>
+            <input
+              className="input input-bordered flex-1"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+            <input
+              className="input input-bordered flex-1"
+              placeholder="Street Name"
+              value={streetName}
+              onChange={(e) => setStreetName(e.target.value)}
+              required
+            />
+            <input
+              className="input input-bordered flex-1"
+              placeholder="Location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              required
+            />
+            <button className="btn bg-green-600 text-white">
+              {editingPerson ? "Update" : "Add"}
+            </button>
           </div>
         </form>
 
-        {/* Search and sort */}
         <div className="flex justify-between mb-3">
           <input
-            id="adminSearch"
             type="text"
-            placeholder="Search..."
+            placeholder="Search...  "
             className="input input-bordered w-48"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <select className="select select-bordered" value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
+          <select
+            className="select select-bordered"
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value)}
+          >
             <option value="newest">Date: Newest</option>
             <option value="oldest">Date: Oldest</option>
             <option value="az">Name A–Z</option>
@@ -188,47 +226,94 @@ function AdminDashboard() {
           </select>
         </div>
 
-        {/* Table */}
-        {loading ? <p className="text-black p-4">Loading data...</p> :
-          filtered.length === 0 ? <p className="text-black p-4">No records found.</p> :
-            <div className="overflow-x-auto bg-white p-4 rounded-xl border border-gray-300 shadow-lg">
-              <table className="table table-xs w-full">
-                <thead className="bg-gray-200 text-black">
-                  <tr><th>#</th><th>Name</th><th>Street Name</th><th>Location</th><th>Date</th><th>Actions</th></tr>
-                </thead>
-                <tbody>
-                  {displayed.map((p, index) => (
-                    <tr key={p._id} className="hover:bg-gray-100 text-black">
-                      <th>{start + index + 1}</th>
-                      <td>{p.name}</td>
-                      <td>{p.streetName}</td>
-                      <td>{p.location}</td>
-                      <td>{formatDate(p.date)}</td>
-                      <td>
-                        <button className="btn btn-sm bg-grey text-white mr-2" onClick={() => startEdit(p)}>Edit</button>
-                        <button className="btn btn-sm bg-red-600 text-white" onClick={() => setPersonToDelete(p)}>Delete</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="flex justify-center gap-3 mt-3">
-                <button disabled={page === 1} className="btn btn-sm" onClick={() => setPage(page - 1)}>Prev</button>
-                <span className="text-black">Page {page} of {totalPages}</span>
-                <button disabled={page === totalPages} className="btn btn-sm" onClick={() => setPage(page + 1)}>Next</button>
-              </div>
+        {loading ? (
+          <p className="p-4">Loading data...</p>
+        ) : filtered.length === 0 ? (
+          <p className="p-4">No records found.</p>
+        ) : (
+          <div className="overflow-x-auto bg-white p-4 rounded-xl shadow-lg text-black">
+            <table className="table table-xs w-full">
+              <thead className="bg-green-600 text-white">
+                <tr>
+                  <th>#</th>
+                  <th>Name</th>
+                  <th>Street</th>
+                  <th>Location</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayed.map((p, index) => (
+                  <tr key={p._id}>
+                    <th>{start + index + 1}</th>
+                    <td>{p.name}</td>
+                    <td>{p.streetName}</td>
+                    <td>{p.location}</td>
+                    <td>{formatDate(p.date)}</td>
+                    <td>
+                      <button
+                        className="btn btn-sm mr-2"
+                        onClick={() => startEdit(p)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-sm bg-red-600 text-white"
+                        onClick={() => setPersonToDelete(p)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* Pagination */}
+            <div className="flex justify-center gap-3 mt-3">
+              <button
+                disabled={page === 1}
+                className="btn btn-sm"
+                onClick={() => setPage(page - 1)}
+              >
+                Prev
+              </button>
+              <span className="text-black">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                disabled={page === totalPages}
+                className="btn btn-sm"
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </button>
             </div>
-        }
+          </div>
+        )}
       </div>
 
       {/* Delete Modal */}
       {personToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl text-center text-black">
-            <p>Delete <b>{personToDelete.name}</b>?</p>
+            <p>
+              Delete <b>{personToDelete.name}</b>?
+            </p>
             <div className="flex justify-center gap-4 mt-4">
-              <button className="btn bg-red-600 text-white" onClick={confirmDelete}>Delete</button>
-              <button className="btn" onClick={() => setPersonToDelete(null)}>Cancel</button>
+              <button
+                className="btn bg-red-600 text-white"
+                onClick={confirmDelete}
+              >
+                Yes, Delete
+              </button>
+              <button
+                className="btn"
+                onClick={() => setPersonToDelete(null)}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -238,3 +323,4 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
+

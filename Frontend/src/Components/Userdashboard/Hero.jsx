@@ -20,7 +20,7 @@ function Hero() {
   const fetchPeople = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/people`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/people`);
       const data = await res.json();
       setPeople(data);
       setFiltered(data);
