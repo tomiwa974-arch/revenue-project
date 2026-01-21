@@ -1,4 +1,4 @@
-import express from "express";
+import express from "express"; 
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import adminRoutes from "./routes/adminRoutes.js";
@@ -14,7 +14,10 @@ app.use(express.urlencoded({ extended: true }));
 import cors from "cors";
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: [
+    "http://localhost:5173",
+    "https://revenue-project-vdef.vercel.app"
+  ],
   credentials: true
 }));
 
@@ -41,6 +44,7 @@ mongoose
   .catch((err) => {
     console.error("MongoDB error:", err);
   });
+
 
 
 
