@@ -1,32 +1,30 @@
-import express from "express"; 
+import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from "cors";
 import adminRoutes from "./routes/adminRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
-// ✅ Body parser (THIS FIXES YOUR ERROR)
+// Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-import cors from "cors";
-
+// CORS FIX
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://revenue-project-vdef.vercel.app"
+    /^https:\/\/.*\.vercel\.app$/
   ],
   credentials: true
 }));
 
-app.use(express.json());
-
 // Routes
 app.use("/admin", adminRoutes);
 
-// Test route (optional)
+// Test route
 app.get("/", (req, res) => {
   res.send("API running");
 });
